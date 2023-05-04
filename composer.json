@@ -1,0 +1,41 @@
+{
+  "name": "courier/courier",
+  "description": "A transport-agnostic message bus library for events and commands.",
+  "keywords": ["message-bus", "command-bus", "event-bus", "queue", "messaging"],
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Flavio Heleno",
+      "email": "flaviohbatista@gmail.com",
+      "homepage": "https://flavioheleno.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Courier\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Courier\\Test\\": "tests/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true,
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "sandersander/composer-link": true
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.2",
+    "courier/contracts": "self.version"
+  },
+  "require-dev": {
+    "sandersander/composer-link": "^0.3"
+  }
+}
