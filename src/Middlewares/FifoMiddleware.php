@@ -7,7 +7,7 @@ use Courier\Contracts\Messages\MessageInterface;
 use Courier\Contracts\Middlewares\MiddlewareInterface;
 use Throwable;
 
-class SingleMessageMiddleware implements MiddlewareInterface {
+class FifoMiddleware implements MiddlewareInterface {
   /**
    * @var MessageInterface[]
    */
