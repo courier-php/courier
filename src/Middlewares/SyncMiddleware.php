@@ -9,52 +9,58 @@ use Courier\Contracts\Messages\CommandInterface;
 use Courier\Contracts\Messages\EventInterface;
 use Courier\Contracts\Messages\MessageInterface;
 use Courier\Contracts\Middlewares\MiddlewareInterface;
+use Courier\Contracts\Providers\ProviderInterface;
 use Courier\Contracts\Resolvers\ResolverInterface;
 use InvalidArgumentException;
 use ReflectionClass;
 
 class SyncMiddleware implements MiddlewareInterface {
-  private ResolverInterface $processorResolver;
+  private ResolverInterface $resolver;
   private LocatorInterface $locator;
+  private ProviderInterface $provider;
   private array $handlers = [];
   private array $listeners = [];
 
+  private bool $isRegistered = false;
+
   public function __construct(
-    ResolverInterface $processorResolver,
-    LocatorInterface $locator
+    ResolverInterface $resolver,
+    LocatorInterface $locator,
+    ProviderInterface $provider
   ) {
-    $this->processorResolver = $processorResolver;
+    $this->resolver = $resolver;
     $this->locator = $locator;
+    $this->provider = $provider;
   }
 
-  public function register(string $class): self {
-    if (class_exists($class) === false) {
-      throw new InvalidArgumentException("Class \"{$class}\" was not found");
-    }
-
-    // throw new InvalidArgumentException(
-    //   "Class \"{$class}\" does not implement neither HandlerInterface nor ListenerInterface"
-    // );
-
-    foreach ($this->processorResolver->resolve($class) as $entry) {
-      switch ($entry['subjectType']) {
-        case CommandInterface::class:
-          $this->handlers[$entry['subjectClass']] = [$class, $entry['methodName']];
-          break;
-        case EventInterface::class:
-          $this->listeners[$entry['subjectClass']][] = [$class, $entry['methodName']];
-          break;
-        default:
-          throw new InvalidArgumentException(
-            "Unknown subject type \"{$entry['subjectType']}\" for target class \"{$class}\""
-          );
+  public function register(): self {
+    foreach ($this->provider as $class) {
+      foreach ($this->resolver->resolve($class) as $entry) {
+        switch ($entry['subjectType']) {
+          case CommandInterface::class:
+            $this->handlers[$entry['subjectClass']] = [$class, $entry['methodName']];
+            break;
+          case EventInterface::class:
+            $this->listeners[$entry['subjectClass']][] = [$class, $entry['methodName']];
+            break;
+          default:
+            throw new InvalidArgumentException(
+              "Unknown subject type \"{$entry['subjectType']}\" for target class \"{$class}\""
+            );
+        }
       }
     }
+
+    $this->isRegistered = true;
 
     return $this;
   }
 
   public function handle(MessageInterface $message, callable $next): void {
+    if ($this->isRegistered === false) {
+      $this->register();
+    }
+
     if ($message->hasAttribute('delivery') && $message->getAttribute('delivery') === 'outgoing') {
       $reflectedClass = new ReflectionClass($message);
       $attributes = $reflectedClass->getAttributes(AsyncMessage::class);
