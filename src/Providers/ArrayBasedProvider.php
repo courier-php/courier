@@ -24,7 +24,7 @@ class ArrayBasedProvider implements ProviderInterface {
 
       $implements = class_implements($class);
       if (
-        in_array(HandlerInterface::class, $implements, true) === false ||
+        in_array(HandlerInterface::class, $implements, true) === false &&
         in_array(ListenerInterface::class, $implements, true) === false
       ) {
         throw new InvalidArgumentException(
