@@ -32,7 +32,7 @@
   "prefer-stable": true,
   "require": {
     "php": "^8.2",
-    "courier/contracts": "dev-main",
+    "courier/contracts": "self.version",
     "ramsey/collection": "^2.0"
   },
   "require-dev": {
