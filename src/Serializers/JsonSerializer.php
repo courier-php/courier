@@ -24,7 +24,6 @@ class JsonSerializer implements SerializerInterface {
         $message->getAttributes()
       ],
       JSON_INVALID_UTF8_IGNORE |
-      JSON_NUMERIC_CHECK |
       JSON_PRESERVE_ZERO_FRACTION |
       JSON_UNESCAPED_SLASHES |
       JSON_UNESCAPED_UNICODE
