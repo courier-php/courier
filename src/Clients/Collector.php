@@ -6,12 +6,13 @@ namespace Courier\Clients;
 use Courier\Contracts\Bus\BusInterface;
 use Courier\Contracts\Clients\CollectorInterface;
 use Courier\Contracts\Transports\TransportInterface;
-use Exception;
+use Courier\Exceptions\ProcessorException;
+use Throwable;
 
 class Collector implements CollectorInterface {
   private BusInterface $bus;
   private TransportInterface $transport;
-  private bool $exit = false;
+  private bool $stop;
 
   public function __construct(BusInterface $bus, TransportInterface $transport) {
     $this->bus = $bus;
@@ -19,33 +20,38 @@ class Collector implements CollectorInterface {
   }
 
   public function stop(): void {
-    $this->exit = true;
+    $this->stop = true;
   }
 
   public function collect(string ...$queueNames): void {
-    while ($this->exit === false) {
-      foreach ($queueNames as $queueName) {
-        $message = $this->transport->collect($queueName);
-        if ($message === null) {
-          continue;
-        }
-
-        $message->setProperty('delivery', 'incoming');
-
-        try {
-          $this->bus->handle($message);
-
-          $this->transport->accept($message);
-        } catch (Exception $exception) {
-          $this->transport->reject($message);
-
-          throw $exception;
-        }
-
-        usleep(100);
+    $this->stop = false;
+    foreach ($queueNames as $queueName) {
+      if ($this->stop === true) {
+        break;
       }
 
-      usleep(10);
+      $message = $this->transport->collect($queueName);
+      if ($message === null) {
+        continue;
+      }
+
+      $message->setProperty('delivery', 'incoming');
+
+      try {
+        $this->bus->handle($message);
+
+        $this->transport->accept($message);
+      } catch (ProcessorException $exception) {
+        $this->transport->reject($message, true);
+
+        throw $exception;
+      } catch (Throwable $exception) {
+        $this->transport->reject($message);
+
+        throw $exception;
+      }
+
+      usleep(100);
     }
   }
 }
