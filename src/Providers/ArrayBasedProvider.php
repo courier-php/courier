@@ -43,11 +43,19 @@ class ArrayBasedProvider implements ProviderInterface {
     return $this->count;
   }
 
-  public function current(): string {
+  public function current(): ?string {
+    if ($this->valid() === false) {
+      return null;
+    }
+
     return $this->array[$this->index];
   }
 
-  public function key(): int {
+  public function key(): ?int {
+    if ($this->valid() === false) {
+      return null;
+    }
+
     return $this->index;
   }
 
