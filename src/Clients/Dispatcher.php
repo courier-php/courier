@@ -14,9 +14,11 @@ class Dispatcher implements DispatcherInterface {
     $this->bus = $bus;
   }
 
-  public function dispatch(MessageInterface $message): void {
-    $message->setProperty('delivery', 'outgoing');
+  public function dispatch(MessageInterface ...$messages): void {
+    foreach ($messages as $message) {
+      $message->setProperty('delivery', 'outgoing');
 
-    $this->bus->handle($message);
+      $this->bus->handle($message);
+    }
   }
 }
