@@ -77,4 +77,18 @@ abstract class AbstractMessage implements MessageInterface {
 
     return $this;
   }
+
+  /**
+   * @return array<string, mixed>
+   */
+  public function __serialize(): array {
+    return ['attributes' => $this->attributes];
+  }
+
+  /**
+   * @param array<string, mixed> $data
+   */
+  public function __unserialize(array $data): void {
+    $this->attributes = $data['attributes'];
+  }
 }
